@@ -1,13 +1,12 @@
 FROM debian:9.5
 
+RUN groupadd -r dev && \
+    useradd --no-log-init -r -g dev dev
+
 RUN apt-get update && \
 	apt-get install -y locales && \
 	echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen && \
 	locale-gen
-
-COPY dotfiles/xterm-256color-italic.terminfo /root/.xterm-256color-italic.terminfo
-COPY dotfiles/tmux.conf /root/.tmux.conf
-RUN tic /root/.xterm-256color-italic.terminfo
 
 RUN apt-get install -y --no-install-recommends apt-utils\
 	build-essential \
@@ -20,9 +19,20 @@ RUN apt-get install -y --no-install-recommends apt-utils\
 	zsh 
 RUN chsh -s /usr/bin/zsh
 
+COPY dotfiles/xterm-256color-italic.terminfo /home/dev/.xterm-256color-italic.terminfo
+COPY dotfiles/tmux.conf /home/dev/.tmux.conf
+RUN tic /home/dev/.xterm-256color-italic.terminfo
+
 # install node
 RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
 RUN apt-get install -y nodejs
+
+RUN mkdir -p /home/dev/.config/nvim
+COPY dotfiles/vimrc /home/dev/.config/nvim/init.vim
+RUN chown dev /home/dev
+USER dev
+WORKDIR /home/dev
+
 
 # install go
 # WORKDIR /tmp
